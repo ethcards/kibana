@@ -53,6 +53,7 @@ export default async (kbnServer, server, config) => {
       if (!app) return reply(Boom.notFound('Unknown app ' + id));
 
       try {
+        //ming here
         if (kbnServer.status.isGreen()) {
           await reply.renderApp(app);
         } else {
