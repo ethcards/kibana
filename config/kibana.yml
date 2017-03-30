@@ -101,4 +101,4 @@
 
 # The default locale. This locale can be used in certain circumstances to substitute any missing
 # translations.
-#i18n.defaultLocale: "en"
+i18n.defaultLocale: "tw"
