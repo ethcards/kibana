@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import errors from 'ui/errors';
+import { SavedObjectNotFound, DuplicateField } from 'ui/errors';
 import angular from 'angular';
 import getComputedFields from 'ui/index_patterns/_get_computed_fields';
 import formatHit from 'ui/index_patterns/_format_hit';
@@ -69,7 +69,7 @@ export default function IndexPatternFactory(Private, Notifier, config, kbnIndex,
 
   function updateFromElasticSearch(indexPattern, response) {
     if (!response.found) {
-      throw new errors.SavedObjectNotFound(type, indexPattern.id);
+      throw new SavedObjectNotFound(type, indexPattern.id);
     }
 
     _.forOwn(mapping, (fieldMapping, name) => {
@@ -147,7 +147,7 @@ export default function IndexPatternFactory(Private, Notifier, config, kbnIndex,
 
   function fetchFields(indexPattern) {
     return mapper
-    .getFieldsForIndexPattern(indexPattern, true)
+    .getFieldsForIndexPattern(indexPattern, { skipIndexPatternCache: true })
     .then(fields => {
       const scripted = indexPattern.getScriptedFields();
       const all = fields.concat(scripted);
@@ -212,7 +212,7 @@ export default function IndexPatternFactory(Private, Notifier, config, kbnIndex,
       const names = _.pluck(scriptedFields, 'name');
 
       if (_.contains(names, name)) {
-        throw new errors.DuplicateField(name);
+        throw new DuplicateField(name);
       }
 
       this.fields.push({
@@ -363,7 +363,11 @@ export default function IndexPatternFactory(Private, Notifier, config, kbnIndex,
       return mapper
       .clearCache(this)
       .then(() => fetchFields(this))
-      .then(() => this.save());
+      .then(() => this.save())
+      .catch((err) => {
+        notify.error(err);
+        return Promise.reject(err);
+      });
     }
 
     toJSON() {

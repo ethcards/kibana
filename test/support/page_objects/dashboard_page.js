@@ -1,6 +1,9 @@
 import _ from 'lodash';
 import { defaultFindTimeout } from '../';
 
+import {
+  DashboardConstants
+} from '../../../src/core_plugins/kibana/public/dashboard/dashboard_constants';
 
 import {
   esArchiver,
@@ -34,7 +37,7 @@ export default class DashboardPage {
    */
   async onDashboardLandingPage() {
     PageObjects.common.debug(`onDashboardLandingPage`);
-    const exists = await PageObjects.common.doesCssSelectorExist('a[href="#/dashboard"]');
+    const exists = await PageObjects.common.doesCssSelectorExist(`a[href="#${DashboardConstants.LANDING_PAGE_PATH}"]`);
     return !exists;
   }
 
@@ -43,7 +46,8 @@ export default class DashboardPage {
     const onPage = await this.onDashboardLandingPage();
     if (!onPage) {
       await PageObjects.common.try(async () => {
-        const goToDashboardLink = await PageObjects.common.findByCssSelector('a[href="#/dashboard"]');
+        const goToDashboardLink =
+          await PageObjects.common.findByCssSelector(`a[href="#${DashboardConstants.LANDING_PAGE_PATH}"]`);
         await goToDashboardLink.click();
         // Once the searchFilter can be found, we know the page finished loading.
         await PageObjects.common.findTestSubject('searchFilter');
@@ -220,9 +224,8 @@ export default class DashboardPage {
   }
 
   clickDashboardByLinkText(dashName) {
-    return this.findTimeout
-    .findByLinkText(dashName)
-    .click();
+    PageObjects.common.debug('clickDashboardByLinkText: ' + dashName);
+    return PageObjects.common.try(() => this.findTimeout.findByLinkText(dashName).click());
   }
 
   async searchForDashboardWithName(dashName) {
@@ -412,7 +415,7 @@ export default class DashboardPage {
 
   getSharedItemsCount() {
     PageObjects.common.debug('in getSharedItemsCount');
-    const attributeName = 'shared-items-count';
+    const attributeName = 'data-shared-items-count';
     return this.findTimeout
     .findByCssSelector(`[${attributeName}]`)
     .then(function (element) {
@@ -430,7 +433,7 @@ export default class DashboardPage {
     .findAllByCssSelector('li.gs-w')
     .then(function (elements) {
       return Promise.all(elements.map(async element => {
-        const sharedItem = await element.findByCssSelector('[shared-item]');
+        const sharedItem = await element.findByCssSelector('[data-shared-item]');
         return {
           title: await sharedItem.getAttribute('data-title'),
           description: await sharedItem.getAttribute('data-description')
